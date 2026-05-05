@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "description": "Benchmark questions for Local-AI-Knowledge-Assistant. Replace document names and expected keywords with project-specific values.",
+  "questions": [
+    {
+      "id": "q01",
+      "category": "fact_lookup",
+      "question": "Jaki jest główny cel projektu Local-AI-Knowledge-Assistant?",
+      "expected_keywords": ["local", "rag", "private documents"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q02",
+      "category": "architecture",
+      "question": "Jakie komponenty tworzą pipeline RAG w tym projekcie?",
+      "expected_keywords": ["ingestion", "embeddings", "chroma", "retrieval", "ollama"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q03",
+      "category": "privacy",
+      "question": "W jaki sposób projekt zapewnia prywatność danych użytkownika?",
+      "expected_keywords": ["on-premises", "local", "no cloud"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q04",
+      "category": "deployment",
+      "question": "Jak uruchomić projekt lokalnie krok po kroku?",
+      "expected_keywords": ["docker", "compose", "streamlit"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q05",
+      "category": "tradeoff",
+      "question": "Jakie są ograniczenia lokalnych modeli LLM w tym projekcie?",
+      "expected_keywords": ["latency", "context window", "quality"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q06",
+      "category": "rag_quality",
+      "question": "Jaki wpływ ma chunking (size i overlap) na jakość odpowiedzi?",
+      "expected_keywords": ["chunking", "overlap", "retrieval quality"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q07",
+      "category": "sources",
+      "question": "Czy odpowiedzi powinny zawierać źródła i dlaczego?",
+      "expected_keywords": ["source", "citation", "grounded"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q08",
+      "category": "error_handling",
+      "question": "Co system powinien odpowiedzieć, gdy w bazie nie ma informacji o pytaniu?",
+      "expected_keywords": ["brak danych", "nie znaleziono", "nie zgaduj"],
+      "requires_citation": false,
+      "min_citations": 0
+    },
+    {
+      "id": "q09",
+      "category": "streamlit_ui",
+      "question": "Jakie elementy UI są kluczowe dla chatbota Streamlit w tym projekcie?",
+      "expected_keywords": ["chat_input", "history", "refresh"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q10",
+      "category": "index_refresh",
+      "question": "Jak działa odświeżanie bazy wiedzy po dodaniu nowych dokumentów?",
+      "expected_keywords": ["reindex", "refresh", "without restart"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q11",
+      "category": "performance",
+      "question": "Jakie metryki wydajności są monitorowane w benchmarku?",
+      "expected_keywords": ["avg response time", "p95", "retrieval latency", "generation latency"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q12",
+      "category": "dataset",
+      "question": "Ile dokumentów i chunków zostało zaindeksowanych?",
+      "expected_keywords": ["documents", "chunks", "indexed"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q13",
+      "category": "quality_eval",
+      "question": "Jak liczona jest skuteczność odpowiedzi na zestawie pytań testowych?",
+      "expected_keywords": ["accuracy", "correct answers", "test set"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q14",
+      "category": "hallucination",
+      "question": "Jak mierzysz i ograniczasz halucynacje modelu?",
+      "expected_keywords": ["hallucination rate", "prompt constraints", "source check"],
+      "requires_citation": true,
+      "min_citations": 1
+    },
+    {
+      "id": "q15",
+      "category": "portfolio",
+      "question": "Dlaczego ten projekt jest dobrym przykładem AI integration do portfolio?",
+      "expected_keywords": ["end-to-end", "rag pipeline", "metrics", "docker"],
+      "requires_citation": true,
+      "min_citations": 1
+    }
+  ]
+}

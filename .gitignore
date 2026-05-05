@@ -1,0 +1,19 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite
+*.sqlite3
+
+# Caches and logs
+.cache/
+cache/
+logs/
+*.log
+
+# Local artifacts
+artifacts/
+tmp/
+temp/
+.DS_Store
