@@ -123,9 +123,9 @@ Notatka szczegolowa z debaty: `docs/day4-it-debate.md`.
 - Decyzja: [x] GO (start Dnia 5) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 5 - Retrieval
-- [ ] Dodac funkcje top-k podobnych fragmentow.
-- [ ] Zwrocic rowniez metadane zrodlowe (plik, chunk id).
-- [ ] Zalogowac czas retrieval i liczbe zwracanych chunkow.
+- [x] Dodac funkcje top-k podobnych fragmentow.
+- [x] Zwrocic rowniez metadane zrodlowe (plik, chunk id).
+- [x] Zalogowac czas retrieval i liczbe zwracanych chunkow.
 
 ## Dzien 6 - Integracja z Ollama
 - [ ] Zbudowac prompt: kontekst + pytanie + zasady "nie zgaduj".
