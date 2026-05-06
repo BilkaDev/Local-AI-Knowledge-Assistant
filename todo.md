@@ -37,10 +37,28 @@ Cel: dowiezc projekt Local-AI-Knowledge-Assistant do poziomu "gotowy na portfoli
 - Decyzja: [x] GO (start Dnia 2) / [ ] NOGO (uzupelnic braki)
 - Uwagi koncowe: komplet Dnia 1 zamkniety; mozna startowac Dzien 2.
 
-## Dzien 2 - Srodowisko i zaleznosci
-- [ ] Utworzyc virtualenv i zainstalowac biblioteki: `streamlit`, `langchain`, `chromadb`, `ollama`.
-- [ ] Przygotowac plik `.env.example` z konfiguracja modelu i sciezek.
-- [ ] Sprawdzic lokalne uruchomienie "hello app" w Streamlit.
+## Dzien 2 - Docker-first runtime i konfiguracja
+- [x] Uruchomic bazowy stack przez `docker compose` (aplikacja gotowa do startu).
+- [x] Przygotowac `.env.example` jako kontrakt konfiguracji kontenerow.
+- [x] Wykonac smoke test "hello app" przez kontener Streamlit.
+- [x] Potwierdzic health check i podstawowe logowanie kontenera.
+- [x] Udokumentowac uruchomienie Docker-first oraz fallback diagnostyczny (`venv`) w README.
+
+### Debata zespolu IT (Docker-first)
+
+- **PM:** Priorytetem Dnia 2 jest reprodukowalny setup i jasne Definition of Done.
+- **Backend:** Kontrakt `.env` musi byc jednoznaczny i stabilny pod kolejne dni.
+- **ML/RAG:** Endpoint modelu i domyslne parametry musza byc gotowe pod Dzien 3.
+- **DevOps:** Health check, porty i wolumeny sa wymagane do bezpiecznego startu.
+- **Decyzja koncowa:** Runtime domyslny to Docker-first, a lokalny `venv` zostaje tylko jako fallback diagnostyczny.
+
+### Podsumowanie Dnia 2 (GO/NOGO na Dzien 3)
+
+- Status docker runtime: [x] spelnione / [ ] brak
+- Status kontraktu `.env.example`: [x] spelnione / [ ] brak
+- Status smoke test + health: [x] spelnione / [ ] brak
+- Status notatki z debaty IT: [x] spelnione / [ ] brak
+- Decyzja: [x] GO (start Dnia 3) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 3 - Ingestion dokumentow
 - [ ] Zaimplementowac loader PDF/TXT z katalogu `data/`.

@@ -212,3 +212,49 @@ Day 1 is complete only when all conditions below are true:
 - each answer includes at least one source reference (document/chunk)
 - base repository structure exists: `app/`, `rag/`, `data/`, `scripts/`, `tests/`
 - `.gitignore` covers local artifacts (`venv`, `*.db`, cache, logs, temp outputs)
+
+## Day 2 Docker-first baseline
+
+Primary runtime for Day 2 is Docker Compose.
+
+### Quick start
+
+1. Create local env file:
+
+```bash
+cp .env.example .env
+```
+
+2. Build and run:
+
+```bash
+docker compose up --build -d
+```
+
+3. Verify service health:
+
+```bash
+docker compose ps
+curl -f http://localhost:8501/_stcore/health
+```
+
+4. Open app:
+
+```text
+http://localhost:8501
+```
+
+### Fallback diagnostics (local venv)
+
+Use this only when Docker-specific issues block progress (ports, mounts, permissions, daemon state):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run app/main.py
+```
+
+### Day 2 IT debate notes
+
+Decisions, risks and ownership are documented in `docs/day2-it-debate.md`.
