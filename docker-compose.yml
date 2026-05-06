@@ -7,8 +7,22 @@ services:
       - .env
     environment:
       STREAMLIT_SERVER_HEADLESS: "true"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+    depends_on:
+      - ollama
     ports:
       - "${APP_PORT:-8501}:8501"
     volumes:
       - .:/workspace
     restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

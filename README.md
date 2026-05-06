@@ -39,6 +39,8 @@ flowchart TD
     I --> J[Store vectors in ChromaDB]
 ```
 
+ChromaDB stores both vectors and chunk metadata required for source attribution (`chunk_id`, `source_file`, `char_start`, `char_end`).
+
 ## Portfolio evidence checklist
 
 Use this section to make the project "sell" in recruitment:
@@ -238,7 +240,13 @@ docker compose ps
 curl -f http://localhost:8501/_stcore/health
 ```
 
-4. Open app:
+4. Pull required embedding model in Ollama:
+
+```bash
+docker compose exec ollama ollama pull nomic-embed-text
+```
+
+5. Open app:
 
 ```text
 http://localhost:8501
@@ -282,3 +290,36 @@ Ingestion report is written as JSON and includes:
 - files ingested
 - chunks created
 - failures with per-file reasons
+
+## Day 4 embeddings baseline
+
+Day 4 extends the ingestion output into a retrieval-ready ChromaDB index.
+
+### Expected flow
+
+1. Read chunk records produced by ingestion (`text` plus metadata).
+2. Generate embeddings with the configured embedding model.
+3. Persist vectors in ChromaDB collection together with metadata.
+4. Print indexing summary with processed records and failures.
+
+### Example indexing command (Day 4 target)
+
+```bash
+docker compose run --rm app python scripts/index_embeddings.py \
+  --ingest-report artifacts/ingest/latest.json \
+  --collection-name rag_chunks \
+  --persist-dir artifacts/chroma \
+  --embedding-model nomic-embed-text \
+  --report-path artifacts/index/latest.json
+```
+
+### Environment configuration for Day 4
+
+Keep these values explicit in `.env`:
+- `EMBEDDING_MODEL=nomic-embed-text`
+- `CHROMA_COLLECTION_NAME=rag_chunks`
+- `CHROMA_PERSIST_DIR=/workspace/artifacts/chroma`
+- `EMBEDDING_BATCH_SIZE=32`
+- `INDEX_REPORT_PATH=/workspace/artifacts/index/latest.json`
+- `CHROMA_HOST=chroma`
+- `CHROMA_PORT=8000`

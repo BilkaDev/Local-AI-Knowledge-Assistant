@@ -91,9 +91,36 @@ Notatka szczegolowa z debaty: `docs/day3-it-debate.md`.
 - Decyzja: [x] GO (start Dnia 4) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 4 - Embeddings i ChromaDB
-- [ ] Wybrac embedding model i podlaczyc generowanie embeddingow.
-- [ ] Zapisac chunki do ChromaDB z metadanymi (nazwa pliku, fragment, id).
-- [ ] Zweryfikowac, ze kolekcja jest czytelna i gotowa do retrieval.
+- [x] Wybrac embedding model i podlaczyc generowanie embeddingow do gotowych chunkow.
+- [x] Zapisac chunki do ChromaDB z metadanymi kontraktowymi (`chunk_id`, `source_file`, `char_start`, `char_end`).
+- [x] Ustalic i utrwalic nazwe kolekcji oraz katalog persist przez `.env`.
+- [x] Dodac raport indeksowania (liczba chunkow, zapisanych wektorow, bledy).
+- [x] Zweryfikowac, ze kolekcja jest czytelna i gotowa do retrieval.
+
+### Debata zespolu IT (Dzien 4 - embeddings + ChromaDB)
+
+- **PM:** Dzien 4 ma dowiezc stabilny indeks, zeby Dzien 5 skupil sie tylko na retrieval.
+- **Backend:** Musimy utrzymac kontrakt metadanych z Dnia 3, inaczej zrodla beda niespojne.
+- **ML/RAG:** Potrzebujemy jawnego wyboru modelu embeddingow i powtarzalnych parametrow uruchomienia.
+- **DevOps:** Sciezka persist i nazwa kolekcji musza byc konfigurowalne oraz zgodne z Docker-first.
+- **Decyzja koncowa:** Wybieramy podejscie contract-first: walidacja chunkow + deterministyczne ID + raport indeksowania.
+
+Notatka szczegolowa z debaty: `docs/day4-it-debate.md`.
+
+### Ustalone kryteria akceptacji Dnia 4
+
+- [x] Embedding model jest wybrany i konfigurowalny przez env.
+- [x] ChromaDB zawiera wektory oraz wymagane metadane kazdego chunka.
+- [x] Kolekcja zwraca niezerowa liczbe rekordow i jest gotowa pod top-k retrieval.
+- [x] Raport indeksowania pokazuje: przetworzone chunki, zapisane wektory, failures.
+- [x] Kontrakt danych pozostaje zgodny z pipeline ingest z Dnia 3.
+
+### Podsumowanie Dnia 4 (GO/NOGO na Dzien 5)
+
+- Status embedding model + indeksowanie: [x] spelnione / [ ] brak
+- Status metadanych + kolekcji ChromaDB: [x] spelnione / [ ] brak
+- Status raportu i walidacji kontraktu: [x] spelnione / [ ] brak
+- Decyzja: [x] GO (start Dnia 5) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 5 - Retrieval
 - [ ] Dodac funkcje top-k podobnych fragmentow.
