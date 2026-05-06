@@ -1,31 +1,56 @@
-# Local-AI-Knowledge-Assistant
+# Local AI Knowledge Assistant
 
-Local RAG chatbot for private documents, designed as a portfolio-ready AI integration project.
-The app runs on-premises and combines:
-- Streamlit UI
-- Ollama-hosted LLM (for example `llama3`)
-- ChromaDB vector storage
-- Document indexing pipeline for PDF/TXT files
+Portfolio-ready, local-first RAG assistant for private documents (`.pdf`, `.txt`), built end-to-end with Python, Streamlit, Ollama and ChromaDB.
 
-No user documents are sent to external cloud APIs.
+Projekt pokazuje praktyczną integrację AI: od ingestii dokumentów, przez embeddingi i retrieval, po chat UI z odpowiedziami opartymi o źródła.
 
-## Why this project matters
+![Dashboard preview](docs/dashboard.png)
 
-This project demonstrates practical AI integration skills:
-- building an end-to-end RAG pipeline
-- connecting LLM + embeddings + vector DB + UI
-- measuring answer quality and system performance
-- packaging everything with Docker for reproducible deployment
+## Project status
 
-## Key features
+**Current delivery level:** completed MVP (Days 1-7 from `docs/todo.md`) and fully runnable in Docker.
 
-- Privacy-first: all data and inference stay local.
-- RAG pipeline: automatic indexing of PDF/TXT documents.
-- Source-grounded answers: assistant uses retrieved chunks as context.
-- Streamlit chat UI: simple and clean chatbot interface.
-- Docker-ready setup: easy local run and VPS deployment.
+What is already working:
+- end-to-end RAG flow: question -> retrieval -> grounded answer with sources
+- ingestion pipeline for `.pdf` and `.txt`
+- embeddings + vector index in ChromaDB with metadata (`chunk_id`, `source_file`, `char_start`, `char_end`)
+- Ollama-based generation with "do not guess" fallback behavior
+- Streamlit chat UI with session history, loading state and source details
 
-## RAG architecture (simple flow)
+What is intentionally still planned (not claimed as done yet):
+- in-app "refresh knowledge base" trigger
+- benchmark metrics and evaluation dataset
+- recruitment evidence package (GIF and curated Q&A examples)
+
+## Why this project is good for recruitment
+
+- **Real AI integration, not a toy demo:** complete Retrieval-Augmented Generation pipeline in production-like shape.
+- **Privacy by design:** documents and inference stay local (no external LLM API required).
+- **Deployment discipline:** primary runtime is Docker Compose, which makes setup reproducible on any machine.
+- **Engineering clarity:** explicit data contracts, CLI tooling, env-based configuration and separated modules (`app`, `rag`, `scripts`).
+
+## Tech stack and decisions
+
+| Area | Technology | Why this choice |
+|---|---|---|
+| UI | Streamlit | Fast iteration and clear recruiter demo for chat workflows |
+| LLM runtime | Ollama | Fully local model serving and predictable local deployments |
+| Embeddings | `nomic-embed-text` | Solid default for semantic retrieval in local RAG setups |
+| Vector store | ChromaDB | Lightweight, easy metadata handling, good fit for local prototyping |
+| Backend language | Python 3.11 | Mature AI ecosystem and rapid implementation |
+| Containerization | Docker + Docker Compose | One-command startup and environment parity |
+
+## Docker-first architecture (fully containerized runtime)
+
+This project is designed to run **primarily in Docker**:
+- `app` container: Streamlit UI and RAG scripts
+- `ollama` container: local LLM/embedding model server
+- `ollama-init` one-shot container: pulls required models on first start
+- shared project volume: consistent access to `data/`, `artifacts/`, and code
+
+Local virtualenv is treated only as diagnostics fallback, not default workflow.
+
+## RAG flow
 
 ```mermaid
 flowchart TD
@@ -39,243 +64,36 @@ flowchart TD
     I --> J[Store vectors in ChromaDB]
 ```
 
-ChromaDB stores both vectors and chunk metadata required for source attribution (`chunk_id`, `source_file`, `char_start`, `char_end`).
+## Quick start (recommended)
 
-## Portfolio evidence checklist
-
-Use this section to make the project "sell" in recruitment:
-
-### 1) Metrics
-
-Track and publish:
-- response time (average and p95)
-- number of indexed documents and chunks
-- retrieval and generation latency
-- answer quality on a fixed test set (10-20 questions)
-
-Ready-to-fill metrics table:
-
-| Metric | Target | Current | How measured |
-|---|---:|---:|---|
-| Avg response time (end-to-end) | <= 6.0s | TBD | mean of all benchmark questions |
-| P95 response time (end-to-end) | <= 10.0s | TBD | 95th percentile from benchmark run |
-| Avg retrieval latency | <= 1.5s | TBD | timer around vector search step |
-| Avg generation latency | <= 4.0s | TBD | timer around LLM response step |
-| Indexed documents | >= 10 | TBD | count of files successfully ingested |
-| Indexed chunks | >= 200 | TBD | count from vector DB collection |
-| Test set accuracy | >= 80% | TBD | correct answers / all benchmark questions |
-| Citation coverage | >= 95% | TBD | answers that include at least 1 source |
-| Hallucination rate | <= 10% | TBD | answers marked unsupported by sources |
-
-### Benchmark script plan
-
-Create a script at `scripts/benchmark.py` that:
-
-1. loads a fixed evaluation dataset from `tests/benchmark_questions.json`
-2. sends each question through the same RAG pipeline used by Streamlit
-3. records timings:
-   - total response time
-   - retrieval latency
-   - generation latency
-4. checks output quality:
-   - whether expected keywords/facts are present
-   - whether at least one source is cited
-5. saves results to `artifacts/benchmark/latest.json`
-6. prints a markdown-ready summary table for README updates
-
-Suggested CLI usage:
-
-```bash
-python scripts/benchmark.py --questions tests/benchmark_questions.json --out artifacts/benchmark/latest.json
-```
-
-Suggested output JSON shape:
-
-```json
-{
-  "run_date": "2026-05-05",
-  "model": "llama3",
-  "documents_indexed": 12,
-  "chunks_indexed": 286,
-  "metrics": {
-    "avg_response_time_s": 5.4,
-    "p95_response_time_s": 9.2,
-    "avg_retrieval_latency_s": 1.1,
-    "avg_generation_latency_s": 3.9,
-    "test_set_accuracy": 0.85,
-    "citation_coverage": 0.97,
-    "hallucination_rate": 0.08
-  }
-}
-```
-
-### 2) Architecture
-
-- Keep the diagram above updated with final components.
-- Add one short "design decisions" paragraph (why this embedding model, why local LLM, why ChromaDB).
-
-### 3) Evidence (screens + GIF + examples)
-
-Prepare:
-- 2-3 screenshots of the UI
-- 1 short GIF showing: add docs -> refresh index -> ask question -> get sourced answer
-- 3 concrete Q and A examples with source chunks
-
-### Q&A examples template (copy and fill)
-
-Use this format for each showcased question:
-
-#### Example 1 - [topic]
-
-**User question**  
-`[paste the exact question]`
-
-**Assistant answer (short)**  
-`[paste concise answer returned by the system]`
-
-**Sources used**  
-- `[document_name.pdf]` - section/chunk: `[chunk_id_or_heading]`
-- `[document_name.txt]` - section/chunk: `[chunk_id_or_heading]`
-
-**Why this is a good example**  
-- `[for example: multi-hop retrieval across two documents]`
-- `[for example: answer grounded in specific source passages]`
-
----
-
-#### Example 2 - [topic]
-
-**User question**  
-`[paste the exact question]`
-
-**Assistant answer (short)**  
-`[paste concise answer returned by the system]`
-
-**Sources used**  
-- `[document_name.pdf]` - section/chunk: `[chunk_id_or_heading]`
-- `[document_name.txt]` - section/chunk: `[chunk_id_or_heading]`
-
-**Why this is a good example**  
-- `[for example: correct rejection when context is missing]`
-- `[for example: transparent citation of used chunks]`
-
----
-
-#### Example 3 - [topic]
-
-**User question**  
-`[paste the exact question]`
-
-**Assistant answer (short)**  
-`[paste concise answer returned by the system]`
-
-**Sources used**  
-- `[document_name.pdf]` - section/chunk: `[chunk_id_or_heading]`
-- `[document_name.txt]` - section/chunk: `[chunk_id_or_heading]`
-
-**Why this is a good example**  
-- `[for example: long-context retrieval still stays factual]`
-- `[for example: clear, recruiter-friendly output quality]`
-
-### 4) Lessons learned
-
-Document real engineering trade-offs:
-- chunking strategy (size and overlap) versus quality
-- hallucination control via prompt constraints and retrieval quality
-- limitations of local models (latency, context window, factual stability)
-
-## Suggested project structure
-
-```text
-.
-├── app/                 # Streamlit app
-├── rag/                 # ingestion, embeddings, retrieval, generation
-├── data/                # local documents
-├── scripts/             # helper scripts, benchmarking
-├── tests/               # unit/integration tests
-├── docker-compose.yml
-├── Dockerfile
-└── README.md
-```
-
-## Run target (MVP)
-
-Target MVP behavior:
-- user asks a question in Streamlit chat
-- system retrieves top-k relevant chunks from ChromaDB
-- LLM answers based on context
-- answer includes document sources
-
-### Day 1 MVP definition (project gate)
-
-Day 1 is complete only when all conditions below are true:
-- chat flow is defined end-to-end (question -> retrieval -> sourced answer)
-- answers are explicitly grounded in indexed documents
-- each answer includes at least one source reference (document/chunk)
-- base repository structure exists: `app/`, `rag/`, `data/`, `scripts/`, `tests/`
-- `.gitignore` covers local artifacts (`venv`, `*.db`, cache, logs, temp outputs)
-
-## Day 2 Docker-first baseline
-
-Primary runtime for Day 2 is Docker Compose.
-
-### Quick start
-
-1. Create local env file:
+1. Prepare environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Build and run:
+2. Build and start everything:
 
 ```bash
 docker compose up --build -d
 ```
 
-On first run, Docker Compose now starts an `ollama-init` one-shot service that
-automatically pulls models from `OLLAMA_INIT_MODELS` (default:
-`nomic-embed-text llama3`). The first startup can take several minutes.
-
-3. Verify service health:
+3. Verify health:
 
 ```bash
 docker compose ps
 curl -f http://localhost:8501/_stcore/health
 ```
 
-4. Verify pulled models:
-
-```bash
-docker compose exec ollama ollama list
-```
-
-5. Open app:
+4. Open app:
 
 ```text
 http://localhost:8501
 ```
 
-### Fallback diagnostics (local venv)
+## Operational commands (Docker)
 
-Use this only when Docker-specific issues block progress (ports, mounts, permissions, daemon state):
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-streamlit run app/main.py
-```
-
-### Day 2 IT debate notes
-
-Decisions, risks and ownership are documented in `docs/day2-it-debate.md`.
-
-## Day 3 ingestion baseline
-
-Ingestion supports `.txt` and `.pdf` files from `data/`.
-
-Run ingestion inside Docker:
+### Ingestion
 
 ```bash
 docker compose run --rm app python scripts/ingest.py \
@@ -285,28 +103,7 @@ docker compose run --rm app python scripts/ingest.py \
   --report-path artifacts/ingest/latest.json
 ```
 
-Default chunking values can be configured in `.env`:
-- `CHUNK_SIZE=900`
-- `CHUNK_OVERLAP=150`
-
-Ingestion report is written as JSON and includes:
-- files scanned
-- files ingested
-- chunks created
-- failures with per-file reasons
-
-## Day 4 embeddings baseline
-
-Day 4 extends the ingestion output into a retrieval-ready ChromaDB index.
-
-### Expected flow
-
-1. Read chunk records produced by ingestion (`text` plus metadata).
-2. Generate embeddings with the configured embedding model.
-3. Persist vectors in ChromaDB collection together with metadata.
-4. Print indexing summary with processed records and failures.
-
-### Example indexing command (Day 4 target)
+### Index embeddings
 
 ```bash
 docker compose run --rm app python scripts/index_embeddings.py \
@@ -317,22 +114,7 @@ docker compose run --rm app python scripts/index_embeddings.py \
   --report-path artifacts/index/latest.json
 ```
 
-### Environment configuration for Day 4
-
-Keep these values explicit in `.env`:
-- `EMBEDDING_MODEL=nomic-embed-text`
-- `CHROMA_COLLECTION_NAME=rag_chunks`
-- `CHROMA_PERSIST_DIR=/workspace/artifacts/chroma`
-- `EMBEDDING_BATCH_SIZE=32`
-- `INDEX_REPORT_PATH=/workspace/artifacts/index/latest.json`
-- `CHROMA_HOST=chroma`
-- `CHROMA_PORT=8000`
-
-## Day 5 retrieval baseline
-
-Day 5 adds top-k retrieval with source metadata and retrieval timing.
-
-Example command:
+### Retrieval test
 
 ```bash
 docker compose run --rm app python scripts/retrieve.py \
@@ -343,32 +125,7 @@ docker compose run --rm app python scripts/retrieve.py \
   --embedding-model nomic-embed-text
 ```
 
-## Day 6 Ollama integration (A+B)
-
-Day 6 connects retrieval with answer generation in Ollama and adds a safe fallback when context is missing or irrelevant.
-
-### What was added
-
-- prompt builder (`context + question + do-not-guess rules`)
-- answer generation with `LLM_MODEL`
-- source list in output (`chunk_id`, `source_file`, `char span`, `distance`, `snippet`)
-- fallback message when no relevant context is available
-- lightweight CLI (`scripts/ask.py`) for fast testing before Streamlit chat in Day 7
-
-### Required models in Ollama
-
-```bash
-docker compose exec ollama ollama list
-```
-
-If needed, pull manually:
-
-```bash
-docker compose exec ollama ollama pull nomic-embed-text
-docker compose exec ollama ollama pull llama3
-```
-
-### Ask command (Day 6)
+### Ask through full RAG + LLM
 
 ```bash
 docker compose run --rm app python scripts/ask.py \
@@ -377,33 +134,35 @@ docker compose run --rm app python scripts/ask.py \
   --persist-dir artifacts/chroma \
   --collection-name rag_chunks \
   --embedding-model nomic-embed-text \
-  --llm-model llama3
+  --llm-model llama3.2:1b
 ```
 
-Optional relevance threshold:
-- set `RETRIEVAL_MAX_DISTANCE` in `.env`, or
-- pass `--max-context-distance` in `scripts/ask.py`.
-
-## Day 7 Streamlit chat (MVP UI)
-
-Day 7 delivers the first chat UI on top of the Day 6 retrieval-plus-generation flow.
-
-### What was added
-
-- `st.chat_input` and chat history stored in `st.session_state` (session-only)
-- assistant responses rendered with expandable source section
-- source details include `source_file`, `chunk_id`, `distance`, `char range`, and `snippet`
-- loading state while retrieval and generation are running
-- basic runtime error handling with a user-facing message
-
-### Run
-
-```bash
-docker compose up --build -d
-```
-
-Open:
+## Repository structure
 
 ```text
-http://localhost:8501
+.
+├── app/                 # Streamlit app
+├── rag/                 # ingestion, embeddings, retrieval, generation logic
+├── data/                # local documents for indexing
+├── scripts/             # CLI workflows (ingest/index/retrieve/ask)
+├── tests/               # tests and evaluation assets
+├── docs/                # planning notes and portfolio materials
+├── docker-compose.yml
+├── Dockerfile
+└── README.md
 ```
+
+## Roadmap (aligned with `docs/todo.md`)
+
+Next milestones:
+- Day 8: refresh knowledge base from UI without app restart
+- Day 9-10: benchmark metrics + fixed evaluation set
+- Day 11: architecture/design decisions + limitations section
+- Day 12: recruiter evidence package (GIF + 3 curated Q&A examples)
+- Day 13-14: lessons learned + final polish for publication
+
+## Notes for reviewers
+
+- Main objective is to demonstrate practical AI product engineering, not only model prompting.
+- The current baseline is stable for demos and local testing.
+- Planned items are documented transparently and intentionally separated from completed scope.
