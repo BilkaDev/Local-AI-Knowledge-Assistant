@@ -6,6 +6,10 @@ from typing import Any, Callable
 
 from rag.retrieval import RetrievedChunk, retrieve_similar_chunks
 
+SOURCE_SNIPPET_MAX_CHARS = 240
+DEFAULT_OLLAMA_TIMEOUT_SECONDS = 120.0
+DEFAULT_LLM_MAX_TOKENS = 256
+
 
 @dataclass
 class SourceCitation:
@@ -14,6 +18,7 @@ class SourceCitation:
     char_start: int | None
     char_end: int | None
     distance: float | None
+    snippet: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -22,6 +27,7 @@ class SourceCitation:
             "char_start": self.char_start,
             "char_end": self.char_end,
             "distance": self.distance,
+            "snippet": self.snippet,
         }
 
 
@@ -55,10 +61,52 @@ def _log(message: str, log_fn: Callable[[str], None] | None) -> None:
     log_fn(f"[generation] {message}")
 
 
-def _create_ollama_client(host: str) -> Any:
+def _create_ollama_client(host: str, timeout_seconds: float | None = None) -> Any:
     import ollama
 
-    return ollama.Client(host=host)
+    if timeout_seconds is None:
+        return ollama.Client(host=host)
+    try:
+        return ollama.Client(host=host, timeout=timeout_seconds)
+    except TypeError:
+        return ollama.Client(host=host)
+
+
+def _float_env(name: str, default: float) -> float:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    if value <= 0:
+        return default
+    return value
+
+
+def _int_env(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    if value <= 0:
+        return default
+    return value
+
+
+def _ollama_generate_options() -> dict[str, int]:
+    return {"num_predict": _int_env("LLM_MAX_TOKENS", DEFAULT_LLM_MAX_TOKENS)}
+
+
+def _build_snippet(text: str, max_chars: int = SOURCE_SNIPPET_MAX_CHARS) -> str:
+    normalized = " ".join(text.strip().split())
+    if len(normalized) <= max_chars:
+        return normalized
+    return f"{normalized[: max_chars - 1].rstrip()}..."
 
 
 def _to_source(chunk: RetrievedChunk) -> SourceCitation:
@@ -68,6 +116,7 @@ def _to_source(chunk: RetrievedChunk) -> SourceCitation:
         char_start=chunk.char_start,
         char_end=chunk.char_end,
         distance=chunk.distance,
+        snippet=_build_snippet(chunk.text),
     )
 
 
@@ -112,16 +161,49 @@ def _build_messages(question: str, chunks: list[RetrievedChunk]) -> list[dict[st
     ]
 
 
+def _build_generate_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
+    context_block = _build_context(chunks)
+    return (
+        "Jestes asystentem opartym o retrieval. Uzywaj tylko podanego kontekstu.\n\n"
+        f"Kontekst:\n{context_block}\n\n"
+        f"Pytanie: {question}\n\n"
+        "Zasady:\n"
+        "1) Odpowiadaj tylko na podstawie kontekstu.\n"
+        "2) Jesli kontekst nie wystarcza, napisz to wprost.\n"
+        "3) Odpowiedz ma byc zwiezla i konkretna.\n"
+    )
+
+
 def _extract_chat_content(response: dict[str, Any]) -> str:
+    def _string_from_value(value: Any) -> str:
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, list):
+            parts: list[str] = []
+            for item in value:
+                if isinstance(item, str) and item.strip():
+                    parts.append(item.strip())
+                elif isinstance(item, dict):
+                    text = item.get("text") or item.get("content")
+                    if isinstance(text, str) and text.strip():
+                        parts.append(text.strip())
+            return "\n".join(parts).strip()
+        if isinstance(value, dict):
+            text = value.get("text") or value.get("content") or value.get("response")
+            if isinstance(text, str):
+                return text.strip()
+        return ""
+
     message = response.get("message")
     if isinstance(message, dict):
-        content = message.get("content")
-        if isinstance(content, str) and content.strip():
-            return content.strip()
+        content = _string_from_value(message.get("content"))
+        if content:
+            return content
 
-    fallback = response.get("response")
-    if isinstance(fallback, str) and fallback.strip():
-        return fallback.strip()
+    for key in ("response", "output_text", "content"):
+        candidate = _string_from_value(response.get(key))
+        if candidate:
+            return candidate
 
     raise ValueError("Ollama chat response missing generated text.")
 
@@ -191,12 +273,48 @@ def generate_answer(
         )
 
     host = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    client = _create_ollama_client(host=host)
+    timeout_seconds = _float_env("OLLAMA_REQUEST_TIMEOUT_SECONDS", DEFAULT_OLLAMA_TIMEOUT_SECONDS)
+    client = _create_ollama_client(host=host, timeout_seconds=timeout_seconds)
     messages = _build_messages(question=question, chunks=selected_chunks)
+    generate_options = _ollama_generate_options()
     generation_start = time.perf_counter()
-    response = client.chat(model=llm_model, messages=messages)
+    response = client.chat(model=llm_model, messages=messages, options=generate_options)
     generation_time_ms = (time.perf_counter() - generation_start) * 1000
-    answer_text = _extract_chat_content(response)
+    try:
+        answer_text = _extract_chat_content(response)
+    except ValueError:
+        generate_prompt = _build_generate_prompt(question=question, chunks=selected_chunks)
+        generate_start = time.perf_counter()
+        generate_response = client.generate(
+            model=llm_model,
+            prompt=generate_prompt,
+            options=generate_options,
+        )
+        generation_time_ms += (time.perf_counter() - generate_start) * 1000
+        try:
+            answer_text = _extract_chat_content(generate_response)
+        except ValueError:
+            _log(
+                (
+                    f"model={llm_model} used_chunks={len(selected_chunks)} "
+                    "fallback_reason=empty_generation generation_time_ms="
+                    f"{generation_time_ms:.3f}"
+                ),
+                log_fn,
+            )
+            return GenerationResult(
+                question=question,
+                answer_text=(
+                    "Model nie zwrocil tresci odpowiedzi. "
+                    "Sprobuj ponownie lub wybierz inny model."
+                ),
+                model=llm_model,
+                used_chunks=len(selected_chunks),
+                sources=sources,
+                retrieval_time_ms=retrieval_result.retrieval_time_ms,
+                generation_time_ms=generation_time_ms,
+                fallback_reason="empty_generation",
+            )
 
     _log(
         (

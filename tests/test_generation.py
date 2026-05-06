@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from rag.generation import generate_answer
+from rag.generation import SOURCE_SNIPPET_MAX_CHARS, generate_answer
 from rag.retrieval import RetrievalResult, RetrievedChunk
 
 
@@ -49,6 +49,7 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(1, result.used_chunks)
         self.assertEqual("doc1-0001", result.sources[0].chunk_id)
         self.assertEqual("policy.txt", result.sources[0].source_file)
+        self.assertEqual("Policy requires approval.", result.sources[0].snippet)
         self.assertIsNone(result.fallback_reason)
         self.assertEqual(1, len(logs))
         self.assertIn("[generation]", logs[0])
@@ -129,6 +130,129 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual("low_relevance", result.fallback_reason)
         self.assertEqual(0, result.used_chunks)
         create_client_mock.assert_not_called()
+
+    @patch("rag.generation.retrieve_similar_chunks")
+    @patch("rag.generation._create_ollama_client")
+    def test_generate_answer_source_snippet_is_truncated(
+        self,
+        create_client_mock: Mock,
+        retrieve_mock: Mock,
+    ) -> None:
+        long_text = "A" * (SOURCE_SNIPPET_MAX_CHARS + 80)
+        retrieve_mock.return_value = RetrievalResult(
+            question="Long source?",
+            requested_top_k=1,
+            retrieval_time_ms=4.2,
+            chunks=[
+                RetrievedChunk(
+                    chunk_id="doc-0001",
+                    source_file="long.txt",
+                    text=long_text,
+                    char_start=0,
+                    char_end=len(long_text),
+                    distance=0.1,
+                )
+            ],
+        )
+        ollama_client = Mock()
+        ollama_client.chat.return_value = {"message": {"content": "Done."}}
+        create_client_mock.return_value = ollama_client
+
+        result = generate_answer(
+            question="Long source?",
+            top_k=1,
+            collection_name="rag_chunks",
+            persist_dir=Path("artifacts/chroma"),
+            embedding_model="nomic-embed-text",
+            llm_model="llama3",
+            log_fn=None,
+        )
+
+        snippet = result.sources[0].snippet
+        self.assertTrue(snippet.endswith("..."))
+        self.assertLessEqual(len(snippet), SOURCE_SNIPPET_MAX_CHARS + 3)
+
+    @patch("rag.generation.retrieve_similar_chunks")
+    @patch("rag.generation._create_ollama_client")
+    def test_generate_answer_handles_empty_model_response(
+        self,
+        create_client_mock: Mock,
+        retrieve_mock: Mock,
+    ) -> None:
+        retrieve_mock.return_value = RetrievalResult(
+            question="Question",
+            requested_top_k=1,
+            retrieval_time_ms=5.0,
+            chunks=[
+                RetrievedChunk(
+                    chunk_id="doc1-0001",
+                    source_file="policy.txt",
+                    text="Policy requires approval.",
+                    char_start=0,
+                    char_end=24,
+                    distance=0.11,
+                )
+            ],
+        )
+        ollama_client = Mock()
+        ollama_client.chat.return_value = {"message": {"content": ""}}
+        create_client_mock.return_value = ollama_client
+
+        result = generate_answer(
+            question="Question",
+            top_k=1,
+            collection_name="rag_chunks",
+            persist_dir=Path("artifacts/chroma"),
+            embedding_model="nomic-embed-text",
+            llm_model="tinyllama",
+            log_fn=None,
+        )
+
+        self.assertEqual("empty_generation", result.fallback_reason)
+        self.assertIn("Model nie zwrocil tresci odpowiedzi", result.answer_text)
+        self.assertEqual(1, result.used_chunks)
+
+    @patch("rag.generation.retrieve_similar_chunks")
+    @patch("rag.generation._create_ollama_client")
+    def test_generate_answer_falls_back_to_generate_api_when_chat_empty(
+        self,
+        create_client_mock: Mock,
+        retrieve_mock: Mock,
+    ) -> None:
+        retrieve_mock.return_value = RetrievalResult(
+            question="Question",
+            requested_top_k=1,
+            retrieval_time_ms=5.0,
+            chunks=[
+                RetrievedChunk(
+                    chunk_id="doc1-0001",
+                    source_file="policy.txt",
+                    text="Policy requires approval.",
+                    char_start=0,
+                    char_end=24,
+                    distance=0.11,
+                )
+            ],
+        )
+        ollama_client = Mock()
+        ollama_client.chat.return_value = {"message": {"content": ""}}
+        ollama_client.generate.return_value = {"response": "Fallback generate answer."}
+        create_client_mock.return_value = ollama_client
+
+        result = generate_answer(
+            question="Question",
+            top_k=1,
+            collection_name="rag_chunks",
+            persist_dir=Path("artifacts/chroma"),
+            embedding_model="nomic-embed-text",
+            llm_model="tinyllama",
+            log_fn=None,
+        )
+
+        self.assertIsNone(result.fallback_reason)
+        self.assertEqual("Fallback generate answer.", result.answer_text)
+        ollama_client.chat.assert_called_once()
+        ollama_client.generate.assert_called_once()
 
 
 if __name__ == "__main__":

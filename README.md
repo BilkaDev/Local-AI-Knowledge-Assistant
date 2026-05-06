@@ -233,6 +233,10 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
+On first run, Docker Compose now starts an `ollama-init` one-shot service that
+automatically pulls models from `OLLAMA_INIT_MODELS` (default:
+`nomic-embed-text llama3`). The first startup can take several minutes.
+
 3. Verify service health:
 
 ```bash
@@ -240,10 +244,10 @@ docker compose ps
 curl -f http://localhost:8501/_stcore/health
 ```
 
-4. Pull required embedding model in Ollama:
+4. Verify pulled models:
 
 ```bash
-docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec ollama ollama list
 ```
 
 5. Open app:
@@ -347,11 +351,17 @@ Day 6 connects retrieval with answer generation in Ollama and adds a safe fallba
 
 - prompt builder (`context + question + do-not-guess rules`)
 - answer generation with `LLM_MODEL`
-- source list in output (`chunk_id`, `source_file`, `char span`, `distance`)
+- source list in output (`chunk_id`, `source_file`, `char span`, `distance`, `snippet`)
 - fallback message when no relevant context is available
 - lightweight CLI (`scripts/ask.py`) for fast testing before Streamlit chat in Day 7
 
 ### Required models in Ollama
+
+```bash
+docker compose exec ollama ollama list
+```
+
+If needed, pull manually:
 
 ```bash
 docker compose exec ollama ollama pull nomic-embed-text
@@ -373,3 +383,27 @@ docker compose run --rm app python scripts/ask.py \
 Optional relevance threshold:
 - set `RETRIEVAL_MAX_DISTANCE` in `.env`, or
 - pass `--max-context-distance` in `scripts/ask.py`.
+
+## Day 7 Streamlit chat (MVP UI)
+
+Day 7 delivers the first chat UI on top of the Day 6 retrieval-plus-generation flow.
+
+### What was added
+
+- `st.chat_input` and chat history stored in `st.session_state` (session-only)
+- assistant responses rendered with expandable source section
+- source details include `source_file`, `chunk_id`, `distance`, `char range`, and `snippet`
+- loading state while retrieval and generation are running
+- basic runtime error handling with a user-facing message
+
+### Run
+
+```bash
+docker compose up --build -d
+```
+
+Open:
+
+```text
+http://localhost:8501
+```

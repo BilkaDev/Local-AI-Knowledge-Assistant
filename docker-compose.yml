@@ -9,7 +9,10 @@ services:
       STREAMLIT_SERVER_HEADLESS: "true"
       OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
     depends_on:
-      - ollama
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
     ports:
       - "${APP_PORT:-8501}:8501"
     volumes:
@@ -23,6 +26,29 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+
+  ollama-init:
+    image: ollama/ollama:latest
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        until ollama list >/dev/null 2>&1; do
+          echo '[ollama-init] waiting for Ollama API...'
+          sleep 2
+        done
+        for model in $$OLLAMA_INIT_MODELS; do
+          echo "[ollama-init] pulling $$model"
+          ollama pull "$$model"
+        done
+    depends_on:
+      ollama:
+        condition: service_started
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_INIT_MODELS: "${OLLAMA_INIT_MODELS:-nomic-embed-text llama3.2:1b}"
+    restart: "no"
 
 volumes:
   ollama_data:

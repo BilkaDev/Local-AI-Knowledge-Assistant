@@ -133,9 +133,16 @@ Notatka szczegolowa z debaty: `docs/day4-it-debate.md`.
 - [x] Dodac fallback: komunikat gdy brak relewantnego kontekstu.
 
 ## Dzien 7 - Streamlit chat (MVP UI)
-- [ ] Zrobic interfejs chatowy (historia rozmowy + `st.chat_input`).
-- [ ] Pokazac zrodla pod kazda odpowiedzia.
-- [ ] Dodac podstawowa obsluge bledow i loading state.
+- [x] Zrobic interfejs chatowy (historia rozmowy + `st.chat_input`).
+- [x] Pokazac zrodla pod kazda odpowiedzia.
+- [x] Dodac podstawowa obsluge bledow i loading state.
+
+### Podsumowanie Dnia 7 (GO/NOGO na Dzien 8)
+
+- Status UI chat + historia sesji: [x] spelnione / [ ] brak
+- Status zrodel pod odpowiedzia (metadata + snippet): [x] spelnione / [ ] brak
+- Status loading + obsluga bledow: [x] spelnione / [ ] brak
+- Decyzja: [x] GO (start Dnia 8) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 8 - Odswiezanie bazy wiedzy
 - [ ] Dodac przycisk "Odswiez baze wiedzy".
