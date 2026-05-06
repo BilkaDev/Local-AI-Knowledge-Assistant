@@ -128,9 +128,9 @@ Notatka szczegolowa z debaty: `docs/day4-it-debate.md`.
 - [x] Zalogowac czas retrieval i liczbe zwracanych chunkow.
 
 ## Dzien 6 - Integracja z Ollama
-- [ ] Zbudowac prompt: kontekst + pytanie + zasady "nie zgaduj".
-- [ ] Podlaczyc model Ollama i zwracac odpowiedz wraz ze zrodlami.
-- [ ] Dodac fallback: komunikat gdy brak relewantnego kontekstu.
+- [x] Zbudowac prompt: kontekst + pytanie + zasady "nie zgaduj".
+- [x] Podlaczyc model Ollama i zwracac odpowiedz wraz ze zrodlami.
+- [x] Dodac fallback: komunikat gdy brak relewantnego kontekstu.
 
 ## Dzien 7 - Streamlit chat (MVP UI)
 - [ ] Zrobic interfejs chatowy (historia rozmowy + `st.chat_input`).

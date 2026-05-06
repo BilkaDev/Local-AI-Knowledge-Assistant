@@ -323,3 +323,53 @@ Keep these values explicit in `.env`:
 - `INDEX_REPORT_PATH=/workspace/artifacts/index/latest.json`
 - `CHROMA_HOST=chroma`
 - `CHROMA_PORT=8000`
+
+## Day 5 retrieval baseline
+
+Day 5 adds top-k retrieval with source metadata and retrieval timing.
+
+Example command:
+
+```bash
+docker compose run --rm app python scripts/retrieve.py \
+  --question "What does the policy say?" \
+  --top-k 4 \
+  --persist-dir artifacts/chroma \
+  --collection-name rag_chunks \
+  --embedding-model nomic-embed-text
+```
+
+## Day 6 Ollama integration (A+B)
+
+Day 6 connects retrieval with answer generation in Ollama and adds a safe fallback when context is missing or irrelevant.
+
+### What was added
+
+- prompt builder (`context + question + do-not-guess rules`)
+- answer generation with `LLM_MODEL`
+- source list in output (`chunk_id`, `source_file`, `char span`, `distance`)
+- fallback message when no relevant context is available
+- lightweight CLI (`scripts/ask.py`) for fast testing before Streamlit chat in Day 7
+
+### Required models in Ollama
+
+```bash
+docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec ollama ollama pull llama3
+```
+
+### Ask command (Day 6)
+
+```bash
+docker compose run --rm app python scripts/ask.py \
+  --question "What are Day 6 goals?" \
+  --top-k 4 \
+  --persist-dir artifacts/chroma \
+  --collection-name rag_chunks \
+  --embedding-model nomic-embed-text \
+  --llm-model llama3
+```
+
+Optional relevance threshold:
+- set `RETRIEVAL_MAX_DISTANCE` in `.env`, or
+- pass `--max-context-distance` in `scripts/ask.py`.
