@@ -61,9 +61,34 @@ Cel: dowiezc projekt Local-AI-Knowledge-Assistant do poziomu "gotowy na portfoli
 - Decyzja: [x] GO (start Dnia 3) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 3 - Ingestion dokumentow
-- [ ] Zaimplementowac loader PDF/TXT z katalogu `data/`.
-- [ ] Dodac chunking (size + overlap) i normalizacje tekstu.
-- [ ] Dodac prosty skrypt CLI `ingest`, ktory raportuje liczbe przetworzonych plikow.
+- [x] Zaimplementowac loader PDF/TXT z katalogu `data/`.
+- [x] Dodac chunking (size + overlap) i normalizacje tekstu.
+- [x] Dodac prosty skrypt CLI `ingest`, ktory raportuje liczbe przetworzonych plikow.
+
+### Debata zespolu IT (Dzien 3 - ingestion)
+
+- **PM:** Priorytetem jest dowiezienie ingestion gotowego pod Dzien 4 bez rozszerzania scope.
+- **Backend:** Potrzebny jest stabilny kontrakt CLI i raport z procesu ingest.
+- **ML/RAG:** Chunking musi byc konfigurowalny (`size`, `overlap`), bo wplywa na jakosc retrieval.
+- **DevOps:** Sciezki i uruchomienie musza pozostac zgodne z Docker-first.
+- **Decyzja koncowa:** Realizujemy hybryde: loader-first + konfigurowalny chunking jeszcze w Dniu 3.
+
+### Ustalone kryteria akceptacji Dnia 3
+
+- [x] Loader obsluguje `.pdf` i `.txt` z `data/`.
+- [x] Chunking dziala z parametrami konfigurowalnymi.
+- [x] CLI `ingest` raportuje: liczbe plikow, chunkow i bledy.
+- [x] Bledne pliki nie przerywaja calego przebiegu ingest.
+- [x] Wynik ingest jest gotowy do przekazania do Dnia 4 (embeddings + ChromaDB).
+
+Notatka szczegolowa z debaty: `docs/day3-it-debate.md`.
+
+### Podsumowanie Dnia 3 (GO/NOGO na Dzien 4)
+
+- Status loader + chunking: [x] spelnione / [ ] brak
+- Status CLI ingest + raport: [x] spelnione / [ ] brak
+- Status obslugi bledow ingest: [x] spelnione / [ ] brak
+- Decyzja: [x] GO (start Dnia 4) / [ ] NOGO (uzupelnic braki)
 
 ## Dzien 4 - Embeddings i ChromaDB
 - [ ] Wybrac embedding model i podlaczyc generowanie embeddingow.

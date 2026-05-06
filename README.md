@@ -258,3 +258,27 @@ streamlit run app/main.py
 ### Day 2 IT debate notes
 
 Decisions, risks and ownership are documented in `docs/day2-it-debate.md`.
+
+## Day 3 ingestion baseline
+
+Ingestion supports `.txt` and `.pdf` files from `data/`.
+
+Run ingestion inside Docker:
+
+```bash
+docker compose run --rm app python scripts/ingest.py \
+  --data-dir data \
+  --chunk-size 900 \
+  --chunk-overlap 150 \
+  --report-path artifacts/ingest/latest.json
+```
+
+Default chunking values can be configured in `.env`:
+- `CHUNK_SIZE=900`
+- `CHUNK_OVERLAP=150`
+
+Ingestion report is written as JSON and includes:
+- files scanned
+- files ingested
+- chunks created
+- failures with per-file reasons
